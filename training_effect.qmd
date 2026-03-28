@@ -1,6 +1,6 @@
 ---
 title: "Estimating Training Effects in Chess Ratings Using Counterfactual Models"
-author: "Your Name"
+author: "George Ellis"
 format:
   html:
     toc: true
@@ -91,6 +91,28 @@ import pandas as pd
 summary = pd.read_csv("v2_3_recovery_summary.csv")
 summary
 ```
+
+### Mean-Reverting Latent Skill with Explicit Counterfactual
+
+```{python}
+import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_csv("model_observation_fits_v2_3.csv")
+
+plt.figure(figsize=(10, 5))
+plt.scatter(df["game"], df["elo_obs"], alpha=0.35, s=18, label="Observed Elo")
+plt.plot(df["game"], df["skill_mean"], label="Estimated Latent Skill")
+plt.plot(df["game"], df["skill_cf_mean"], linestyle="--", label="Estimated Counterfactual")
+plt.axvline(x=200.5, linestyle=":", label="Training Start")
+plt.legend()
+plt.title("Mean-Reverting Latent Skill with Explicit Counterfactual")
+plt.xlabel("Game Number")
+plt.ylabel("Elo")
+plt.show()
+
+```
+
 
 ### Treatment Effect Example
 ```{python}
