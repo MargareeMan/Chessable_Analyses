@@ -1,0 +1,138 @@
+---
+title: "Estimating Training Effects in Chess Ratings Using Counterfactual Models"
+author: "Your Name"
+format:
+  html:
+    toc: true
+    number-sections: true
+---
+
+## Overview
+
+This study investigates whether a training regimen produces measurable improvements in chess skill, using rating data inspired by the Lichess database.
+
+We develop a sequence of Bayesian models, culminating in a mean-reverting latent skill model with explicit counterfactual construction.
+
+## Motivation
+
+Online platforms match players by strength, which stabilizes win rates even when skill improves.
+
+Therefore:
+
+- win rate is a poor indicator of improvement
+- rating trajectories must be modeled directly
+- causal attribution requires a counterfactual
+
+## Empirical Calibration
+
+From matched players between January 2016 and January 2026:
+
+- Mean Elo change: **25.8**
+- SD: **127.4**
+- Strong mobility across rating bins
+
+This implies:
+
+- weak long-run drift
+- high stochastic variability
+- likely mean reversion
+
+## Modeling Progression
+
+### v2.1: Random-Walk State Space
+
+- Failed to recover treatment effect
+- Counterfactual tracked factual path
+
+### v2.2: Piecewise Trend + AR(1)
+
+- Improved identification
+- Reduced confounding
+
+### v2.3: Mean-Reverting Latent Skill Model
+
+- Introduced mean reversion
+- Produced stable counterfactual
+- Recovered upward treatment effect
+
+## Model Specification (v2.3)
+
+Latent skill evolves as:
+
+$$
+s_t = s_{t-1} + \kappa(\mu_t - s_{t-1}) + \varepsilon_t
+$$
+
+where:
+
+$$
+\mu_t = \alpha + \beta_{pre} t + \delta \cdot post_t + \beta_{train} g_t
+$$
+
+Counterfactual:
+
+$$
+\mu_t^{cf} = \alpha + \beta_{pre} t
+$$
+
+Treatment effect:
+
+$$
+\tau_t = s_t - s_t^{cf}
+$$
+
+## Results
+
+### Parameter Recovery
+
+```{python}
+import pandas as pd
+
+summary = pd.read_csv("v2_3_recovery_summary.csv")
+summary
+```
+
+### Treatment Effect Example
+```{python}
+import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_csv("model_observation_fits_v2_3.csv")
+
+plt.figure(figsize=(10, 5))
+plt.plot(df["game"], df["true_treatment_effect"], label="True")
+plt.plot(df["game"], df["treatment_effect_mean"], label="Estimated")
+plt.fill_between(
+    df["game"],
+    df["treatment_effect_lwr"],
+    df["treatment_effect_upr"],
+    alpha=0.2
+)
+plt.legend()
+plt.title("Treatment Effect: True vs Estimated")
+plt.show()
+
+```
+
+### Counterfactual Comparison
+```{python}
+plt.figure(figsize=(10, 5))
+plt.plot(df["game"], df["skill_mean"], label="Estimated Skill")
+plt.plot(df["game"], df["skill_cf_mean"], linestyle="--", label="Counterfactual")
+plt.legend()
+plt.title("Estimated Skill vs Counterfactual")
+plt.show()
+
+```
+
+## Key Findings
+
+The mean-reverting latent skill model produced more realistic counterfactual trajectories than the earlier random-walk models. In particular, the estimated treatment effect in v2.3 increased over time in a way that matched the simulated truth much more closely.
+
+## Implications 
+
+These results suggest that mean reversion is an important ingredient when modeling long-run chess rating dynamics. They also suggest that single-player causal inference remains noisy, even when the model structure is improved.
+
+## Next Steps
+
+Future work should extend the model to multiple players, longer post-training periods, and possibly explicit opponent-strength effects.
