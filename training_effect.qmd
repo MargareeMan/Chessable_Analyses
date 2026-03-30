@@ -181,3 +181,5 @@ Future work could include:
 - incorporating game-level outcomes
 - modeling opponent interactions explicitly
 - using external training data
+
+[Simulation vs Real Data](simulation_vs_real.html)
