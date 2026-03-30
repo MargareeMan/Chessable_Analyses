@@ -1,5 +1,5 @@
 ---
-title: "Estimating Training Effects in Chess Ratings Using Counterfactual Models"
+title: "Chess Rating Dynamics and the Limits of Individual Improvement Inference"
 author: "George Ellis"
 format:
   html:
@@ -10,152 +10,174 @@ format:
 
 ## Overview
 
-This study investigates whether a training regimen produces measurable improvements in chess skill, using rating data inspired by the Lichess database.
+This project investigates whether improvement in chess skill can be reliably detected from rating data alone.
 
-We develop a sequence of Bayesian models, culminating in a mean-reverting latent skill model with explicit counterfactual construction.
+We begin with a simple Bayesian before/after comparison, then progressively introduce:
+
+- opponent matching effects
+- latent skill dynamics
+- hierarchical modeling across players
+
+The final result is a mean-reverting latent skill model with opponent-strength adjustment, applied to real Lichess data.
 
 ## Motivation
 
-Online platforms match players by strength, which stabilizes win rates even when skill improves.
+Online platforms such as Lichess match players of similar strength. This creates a fundamental problem:
 
-Therefore:
+- win rates may remain stable even if skill improves
+- rating trajectories are noisy and mean-reverting
+- opponent strength confounds interpretation
 
-- win rate is a poor indicator of improvement
-- rating trajectories must be modeled directly
-- causal attribution requires a counterfactual
+Therefore, detecting improvement requires:
 
-## Empirical Calibration
+- modeling latent skill
+- accounting for opponent strength
+- separating signal from noise
 
-From matched players between January 2016 and January 2026:
+## Data
 
-- Mean Elo change: **25.8**
-- SD: **127.4**
-- Strong mobility across rating bins
+We analyze a cohort of players who:
 
-This implies:
+- played at least **50 games in at least 2 years**
+- were active between **2022–2025**
 
-- weak long-run drift
-- high stochastic variability
-- likely mean reversion
+Data are aggregated to:
 
-## Modeling Progression
+- monthly average player Elo
+- monthly average opponent Elo
+- number of games per month
 
-### v2.1: Random-Walk State Space
+## Model
 
-- Failed to recover treatment effect
-- Counterfactual tracked factual path
-
-### v2.2: Piecewise Trend + AR(1)
-
-- Improved identification
-- Reduced confounding
-
-### v2.3: Mean-Reverting Latent Skill Model
-
-- Introduced mean reversion
-- Produced stable counterfactual
-- Recovered upward treatment effect
-
-## Model Specification (v2.3)
-
-Latent skill evolves as:
+We model latent skill \( s_{i,t} \) as:
 
 $$
-s_t = s_{t-1} + \kappa(\mu_t - s_{t-1}) + \varepsilon_t
+s_{i,t} = s_{i,t-1} + \kappa(\mu_{i,t} - s_{i,t-1}) + \varepsilon_{i,t}
 $$
 
 where:
 
-$$
-\mu_t = \alpha + \beta_{pre} t + \delta \cdot post_t + \beta_{train} g_t
-$$
+- \( \kappa \) is mean reversion
+- \( \varepsilon_{i,t} \sim \mathcal{N}(0, \sigma_{state}) \)
 
-Counterfactual:
-
-$$
-\mu_t^{cf} = \alpha + \beta_{pre} t
-$$
-
-Treatment effect:
+The long-run target evolves as:
 
 $$
-\tau_t = s_t - s_t^{cf}
+\mu_{i,t} = \alpha_i + \beta_i t
 $$
+
+with:
+
+- \( \alpha_i \) = player baseline
+- \( \beta_i \) = player trend
+
+## Opponent Strength Adjustment
+
+Observed ratings are influenced by opponent strength.
+
+We model:
+
+$$
+y_{i,t} \sim \mathcal{N}(s_{i,t} + \gamma (O_{i,t} - \bar{O}), \sigma_{obs} / \sqrt{n_{i,t}})
+$$
+
+where:
+
+- \( O_{i,t} \) = average opponent Elo
+- \( \gamma \) = opponent adjustment coefficient
 
 ## Results
 
-### Parameter Recovery
+### Parameter Estimates
 
 ```{python}
 import pandas as pd
-
-summary = pd.read_csv("v2_3_recovery_summary.csv")
+summary = pd.read_csv("multi_v24_trend_opp_fixed_summary.csv")
 summary
 ```
 
-### Mean-Reverting Latent Skill with Explicit Counterfactual
+### Distribution of Player Trends
 
 ```{python}
 import pandas as pd
 import matplotlib.pyplot as plt
 
-df = pd.read_csv("model_observation_fits_v2_3.csv")
+df = pd.read_csv("multi_v24_player_trends_opp_fixed.csv")
 
-plt.figure(figsize=(10, 5))
-plt.scatter(df["game"], df["elo_obs"], alpha=0.35, s=18, label="Observed Elo")
-plt.plot(df["game"], df["skill_mean"], label="Estimated Latent Skill")
-plt.plot(df["game"], df["skill_cf_mean"], linestyle="--", label="Estimated Counterfactual")
-plt.axvline(x=200.5, linestyle=":", label="Training Start")
-plt.legend()
-plt.title("Mean-Reverting Latent Skill with Explicit Counterfactual")
-plt.xlabel("Game Number")
-plt.ylabel("Elo")
+plt.figure(figsize=(8, 5))
+plt.hist(df["beta_mean"], bins=15)
+plt.axvline(0, linestyle="--")
+plt.title("Distribution of Player Trend Estimates")
+plt.xlabel("Trend (beta)")
+plt.ylabel("Count")
+plt.tight_layout()
 plt.show()
-
 ```
 
+### Strongest Evidence of Change
 
-### Treatment Effect Example
 ```{python}
-import pandas as pd
-import matplotlib.pyplot as plt
-
-df = pd.read_csv("model_observation_fits_v2_3.csv")
-
-plt.figure(figsize=(10, 5))
-plt.plot(df["game"], df["true_treatment_effect"], label="True")
-plt.plot(df["game"], df["treatment_effect_mean"], label="Estimated")
-plt.fill_between(
-    df["game"],
-    df["treatment_effect_lwr"],
-    df["treatment_effect_upr"],
-    alpha=0.2
-)
-plt.legend()
-plt.title("Treatment Effect: True vs Estimated")
-plt.show()
-
+df_sorted = df.sort_values("evidence_strength", ascending=False)
+df_sorted.head(10)
 ```
 
-### Counterfactual Comparison
-```{python}
-plt.figure(figsize=(10, 5))
-plt.plot(df["game"], df["skill_mean"], label="Estimated Skill")
-plt.plot(df["game"], df["skill_cf_mean"], linestyle="--", label="Counterfactual")
-plt.legend()
-plt.title("Estimated Skill vs Counterfactual")
-plt.show()
+### Example Player Trajectories
 
+```{python}
+skill_df = pd.read_csv("multi_v24_skill_paths_opp_fixed.csv")
+skill_df["month"] = pd.to_datetime(skill_df["month"])
+
+top_players = df_sorted.head(3)["username"].tolist()
+
+for p in top_players:
+    sub = skill_df[skill_df["username"] == p].sort_values("month")
+    plt.figure(figsize=(8, 4))
+    plt.plot(sub["month"], sub["skill_mean"])
+    plt.fill_between(sub["month"], sub["skill_lwr"], sub["skill_upr"], alpha=0.2)
+    plt.title(f"Latent Skill: {p}")
+    plt.xlabel("Month")
+    plt.ylabel("Elo")
+    plt.tight_layout()
+    plt.show()
 ```
 
 ## Key Findings
 
-The mean-reverting latent skill model produced more realistic counterfactual trajectories than the earlier random-walk models. In particular, the estimated treatment effect in v2.3 increased over time in a way that matched the simulated truth much more closely.
+1. **Strong Mean Reversion**
+   - ratings revert toward player-specific baselines
 
-## Implications 
+2. **High Volatility**
+   - month-to-month variation is large
 
-These results suggest that mean reversion is an important ingredient when modeling long-run chess rating dynamics. They also suggest that single-player causal inference remains noisy, even when the model structure is improved.
+3. **Opponent Effects Matter**
+   - opponent strength significantly affects observed ratings
+
+4. **Limited Identifiability of Improvement**
+   - most players' trends are indistinguishable from noise
+
+## Interpretation
+
+Even with a sophisticated model:
+
+- latent skill is noisy
+- ratings are heavily influenced by opponent strength
+- individual improvement is difficult to detect
+
+This supports the critique that simple before/after comparisons can overstate evidence for improvement.
+
+## Conclusion
+
+We find that:
+
+- some players exhibit suggestive trends
+- but most trajectories are dominated by noise
+
+Therefore, reliable attribution of improvement requires additional information beyond rating data alone.
 
 ## Next Steps
 
-Future work should extend the model to multiple players, longer post-training periods, and possibly explicit opponent-strength effects.
+Future work could include:
+
+- incorporating game-level outcomes
+- modeling opponent interactions explicitly
+- using external training data
