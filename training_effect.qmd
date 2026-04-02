@@ -6,6 +6,7 @@ format:
     toc: true
     number-sections: true
     embed-resources: true
+    math: mathjax
 ---
 
 ## Overview
@@ -57,8 +58,8 @@ $$
 
 where:
 
-- \( \kappa \) is mean reversion
-- \( \varepsilon_{i,t} \sim \mathcal{N}(0, \sigma_{state}) \)
+- \( \kappa \) is the mean-reversion parameter  
+- \( \varepsilon_{i,t} \sim \mathcal{N}(0, \sigma_{state}) \) is the state innovation
 
 The long-run target evolves as:
 
@@ -68,8 +69,8 @@ $$
 
 with:
 
-- \( \alpha_i \) = player baseline
-- \( \beta_i \) = player trend
+- \( \alpha_i \) as the player-specific baseline  
+- \( \beta_i \) as the player-specific trend
 
 ## Opponent Strength Adjustment
 
@@ -83,8 +84,9 @@ $$
 
 where:
 
-- \( O_{i,t} \) = average opponent Elo
-- \( \gamma \) = opponent adjustment coefficient
+- \( O_{i,t} \) is the average opponent Elo in month \( t \)  
+- \( \gamma \) is the opponent-adjustment coefficient  
+- \( n_{i,t} \) is the number of games played in month \( t \)
 
 ## Results
 
