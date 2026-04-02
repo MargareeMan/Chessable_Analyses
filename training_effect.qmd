@@ -58,8 +58,8 @@ $$
 
 where:
 
-- \( \kappa \) is the mean-reversion parameter  
-- \( \varepsilon_{i,t} \sim \mathcal{N}(0, \sigma_{state}) \) is the state innovation
+- `kappa` is the mean-reversion parameter  
+- `epsilon_{i,t} ~ Normal(0, sigma_state)` is the state innovation
 
 The long-run target evolves as:
 
@@ -69,8 +69,8 @@ $$
 
 with:
 
-- \( \alpha_i \) as the player-specific baseline  
-- \( \beta_i \) as the player-specific trend
+- `alpha_i` = player-specific baseline  
+- `beta_i` = player-specific trend
 
 ## Opponent Strength Adjustment
 

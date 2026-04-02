@@ -2417,9 +2417,9 @@ s_{i,t} = s_{i,t-1} + \kappa(\mu_{i,t} - s_{i,t-1}) + \varepsilon_{i,t}
 \]</span></p>
 <p>where:</p>
 <ul>
-<li>( ) is the mean-reversion parameter<br>
+<li><code>kappa</code> is the mean-reversion parameter<br>
 </li>
-<li>( <em>{i,t} (0, </em>{state}) ) is the state innovation</li>
+<li><code>epsilon_{i,t} ~ Normal(0, sigma_state)</code> is the state innovation</li>
 </ul>
 <p>The long-run target evolves as:</p>
 <p><span class="math display">\[
@@ -2427,9 +2427,9 @@ s_{i,t} = s_{i,t-1} + \kappa(\mu_{i,t} - s_{i,t-1}) + \varepsilon_{i,t}
 \]</span></p>
 <p>with:</p>
 <ul>
-<li>( _i ) as the player-specific baseline<br>
+<li><code>alpha_i</code> = player-specific baseline<br>
 </li>
-<li>( _i ) as the player-specific trend</li>
+<li><code>beta_i</code> = player-specific trend</li>
 </ul>
 </section>
 <section id="opponent-strength-adjustment" class="level2" data-number="5">
@@ -2452,7 +2452,7 @@ y_{i,t} \sim \mathcal{N}(s_{i,t} + \gamma (O_{i,t} - \bar{O}), \sigma_{obs} / \s
 <h2 data-number="6" class="anchored" data-anchor-id="results"><span class="header-section-number">6</span> Results</h2>
 <section id="parameter-estimates" class="level3" data-number="6.1">
 <h3 data-number="6.1" class="anchored" data-anchor-id="parameter-estimates"><span class="header-section-number">6.1</span> Parameter Estimates</h3>
-<div id="0f63709d" class="cell" data-execution_count="1">
+<div id="25713761" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>summary <span class="op">=</span> pd.read_csv(<span class="st">&quot;multi_v24_trend_opp_fixed_summary.csv&quot;</span>)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>summary</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -2590,7 +2590,7 @@ y_{i,t} \sim \mathcal{N}(s_{i,t} + \gamma (O_{i,t} - \bar{O}), \sigma_{obs} / \s
 </section>
 <section id="distribution-of-player-trends" class="level3" data-number="6.2">
 <h3 data-number="6.2" class="anchored" data-anchor-id="distribution-of-player-trends"><span class="header-section-number">6.2</span> Distribution of Player Trends</h3>
-<div id="173ca849" class="cell" data-execution_count="2">
+<div id="249f5929" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2615,7 +2615,7 @@ y_{i,t} \sim \mathcal{N}(s_{i,t} + \gamma (O_{i,t} - \bar{O}), \sigma_{obs} / \s
 </section>
 <section id="strongest-evidence-of-change" class="level3" data-number="6.3">
 <h3 data-number="6.3" class="anchored" data-anchor-id="strongest-evidence-of-change"><span class="header-section-number">6.3</span> Strongest Evidence of Change</h3>
-<div id="ec031222" class="cell" data-execution_count="3">
+<div id="c4efc602" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>df_sorted <span class="op">=</span> df.sort_values(<span class="st">&quot;evidence_strength&quot;</span>, ascending<span class="op">=</span><span class="va">False</span>)</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>df_sorted.head(<span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="3">
@@ -2822,7 +2822,7 @@ y_{i,t} \sim \mathcal{N}(s_{i,t} + \gamma (O_{i,t} - \bar{O}), \sigma_{obs} / \s
 </section>
 <section id="example-player-trajectories" class="level3" data-number="6.4">
 <h3 data-number="6.4" class="anchored" data-anchor-id="example-player-trajectories"><span class="header-section-number">6.4</span> Example Player Trajectories</h3>
-<div id="00633f72" class="cell" data-execution_count="4">
+<div id="aef41767" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>skill_df <span class="op">=</span> pd.read_csv(<span class="st">&quot;multi_v24_skill_paths_opp_fixed.csv&quot;</span>)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>skill_df[<span class="st">&quot;month&quot;</span>] <span class="op">=</span> pd.to_datetime(skill_df[<span class="st">&quot;month&quot;</span>])</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
